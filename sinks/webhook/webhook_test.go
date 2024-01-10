@@ -1,6 +1,7 @@
 package webhook
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 
@@ -84,6 +85,28 @@ func TestRenderMessageWithDoubleQuote(t *testing.T) {
 	w.bodyTemplate = `{"EventMessage": "{{ .Message }}"}`
 	template, _ := w.RenderBodyTemplate(event)
 	assert.Equal(t, `{"EventMessage": "pod demo-1rare3 OOMKilled"}`, template)
+}
+
+func TestRenderMarkdownMessageWithDoubleQuote(t *testing.T) {
+	uri, err := url.Parse("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=022a86af-f220-44c9-86e6-d9d63fefe703&method=POST")
+	if err != nil {
+		t.Fatalf("Failed to prase webhookSinkFilter,err: %v", err)
+	}
+	w, err := NewWebHookSink(uri)
+	if err != nil {
+		t.Fatalf("Failed to create NewWebhookSink,err: %v", err)
+	}
+	event := &v1.Event{
+		Type:    Warning,
+		Message: "pod \"demo-1rare3\" OOMKilled",
+	}
+	w.bodyTemplate = defaultBodyTemplate
+	template, _ := w.RenderBodyTemplate(event)
+	fmt.Println(template)
+	err = w.Send(event)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (ws *WebHookSink) MockSend(event *v1.Event) (matched bool) {

@@ -29,11 +29,15 @@ var (
 	// body template of event
 	defaultBodyTemplate = `
 {
-	"EventType": "{{ .Type }}",
-	"EventKind": "{{ .InvolvedObject.Kind }}",
-	"EventReason": "{{ .Reason }}",
-	"EventTime": "{{ .LastTimestamp }}",
-	"EventMessage": "{{ .Message }}"
+    "msgtype": "markdown",
+    "markdown": {
+        "content": "K8S 事件告警: <font color=\"warning\">{{ .Type }}</font>\n
+         >EventKind: <font color=\"comment\">{{ .InvolvedObject.Kind }}</font>
+         >EventMeta: <font color=\"comment\">{{ .InvolvedObject.Namespace }}/{{ .InvolvedObject.Name }}</font>
+         >EventReason: <font color=\"comment\">{{ .Reason }}</font>
+         >EventTime: <font color=\"comment\">{{ .LastTimestamp }}</font>
+         >EventMessage: <font color=\"comment\">{{ .Message }}</font>"
+    }
 }`
 )
 
@@ -107,6 +111,8 @@ func (ws *WebHookSink) Send(event *v1.Event) (err error) {
 		klog.Errorln(err)
 		return err
 	}
+	// 打印 event 信息
+	klog.Infof("send event => kind:%s, meta:%s/%s, reason:%s, msg:%s, time:%s", event.InvolvedObject.Kind, event.InvolvedObject.Namespace, event.InvolvedObject.Name, event.Reason, event.Message, event.LastTimestamp)
 	return nil
 }
 
@@ -218,6 +224,7 @@ func NewWebHookSink(uri *url.URL) (*WebHookSink, error) {
 			return s, nil
 		} else {
 			s.bodyTemplate = content
+			fmt.Println("custom bodyTemplate content loaded:\n", s.bodyTemplate)
 		}
 	}
 

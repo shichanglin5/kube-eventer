@@ -37,7 +37,7 @@ import (
 )
 
 var (
-	argFrequency    = flag.Duration("frequency", 30*time.Second, "The resolution at which Eventer pushes events to sinks")
+	argFrequency    = flag.Duration("frequency", 3*time.Second, "The resolution at which Eventer pushes events to sinks")
 	argMaxProcs     = flag.Int("max_procs", 0, "max number of CPUs that can be used simultaneously. Less than 1 for default (number of cores)")
 	argSources      flags.Uris
 	argSinks        flags.Uris
@@ -125,7 +125,7 @@ func startHTTPServer() {
 }
 
 func validateFlags() error {
-	var minFrequency = 5 * time.Second
+	var minFrequency = 1 * time.Second
 
 	if *argHealthzPort > 65534 {
 		return fmt.Errorf("invalid port supplied for healthz %d", *argHealthzPort)

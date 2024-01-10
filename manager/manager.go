@@ -99,6 +99,8 @@ func (rm *realManager) housekeep() {
 	// No parallelism. Assumes that the events are pushed to Heapster. Add parallelism
 	// when this stops to be true.
 	events := rm.source.GetNewEvents()
-	klog.V(0).Infof("Exporting %d events", len(events.Events))
-	rm.sink.ExportEvents(events)
+	if len(events.Events) > 0 {
+		klog.V(0).Infof("GetNewEvents returns %d events", len(events.Events))
+		rm.sink.ExportEvents(events)
+	}
 }

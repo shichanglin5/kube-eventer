@@ -139,7 +139,7 @@ func (this *KubernetesEventSource) watch() {
 				klog.V(10).Infof("kubernetes source watch channel update. watch channel update. watchChanObject: %v", watchUpdate)
 
 				if !ok {
-					klog.Errorf("Event watch channel closed")
+					klog.Infof("Event watch channel closed")
 					break inner_loop
 				}
 				if watchUpdate.Type == kubewatch.Error {

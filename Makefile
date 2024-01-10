@@ -1,7 +1,8 @@
 all: build
 
-PREFIX?=registry.aliyuncs.com/acs
+PREFIX?=hub.17usoft.com/lhhdz
 FLAGS=
+OS?=linux
 ARCH?=amd64
 ALL_ARCHITECTURES=amd64 arm arm64 ppc64le s390x
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64,linux/ppc64le,linux/s390x
@@ -16,9 +17,9 @@ KUBE_EVENTER_LDFLAGS=-w -X github.com/AliyunContainerService/kube-eventer/versio
 fmt:
 	find . -type f -name "*.go" | grep -v "./vendor*" | xargs gofmt -s -w
 
-build: clean
-	go mod tidy & go mod vendor
-	GOARCH=$(ARCH) CGO_ENABLED=0 go build -ldflags "$(KUBE_EVENTER_LDFLAGS)" -o kube-eventer  github.com/AliyunContainerService/kube-eventer
+build:
+	#go mod tidy & go mod vendor
+	GOOS=$(OS) GOARCH=$(ARCH) CGO_ENABLED=0 go build -ldflags "$(KUBE_EVENTER_LDFLAGS)" -o .wd/docker/kube-eventer  github.com/AliyunContainerService/kube-eventer
 
 sanitize:
 	hack/check_gofmt.sh
@@ -36,9 +37,15 @@ test-unit-cov: clean sanitize build
 	hack/coverage.sh
 
 docker-container:
-	docker build --pull -t $(PREFIX)/kube-eventer-$(ARCH):$(VERSION)-$(GIT_COMMIT)-aliyun -f deploy/Dockerfile .
+	docker build --platform=$(OS)/$(ARCH) -t $(PREFIX)/kube-eventer-$(ARCH):$(VERSION)-$(GIT_COMMIT)-aliyun -f deploy/Dockerfile .
 
 clean:
-	rm -f kube-eventer
+	rm -f .wd/docker/kube-eventer
 
 .PHONY: all build sanitize test-unit test-unit-cov docker-container clean fmt
+
+docker-image-build: build
+	cd .wd/docker && docker build --platform=$(OS)/$(ARCH) -t $(PREFIX)/kube-eventer-$(ARCH):$(VERSION)-$(GIT_COMMIT) -f Dockerfile .
+
+docker-image-push: docker-image-build
+	docker push $(PREFIX)/kube-eventer-$(ARCH):$(VERSION)-$(GIT_COMMIT)
